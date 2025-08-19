@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_container
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: retail_db
+      MYSQL_USER: retail_user
+      MYSQL_PASSWORD: retail_pass
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - retail_net
+
+  ingestion:
+    build: ./ingestion
+    container_name: ingestion_service
+    depends_on:
+      - mysql
+    networks:
+      - retail_net
+
+  preprocessing:
+    build: ./preprocessing
+    container_name: preprocessing_service
+    depends_on:
+      - mysql
+    networks:
+      - retail_net
+
+  aggregation:
+    build: ./aggregation
+    container_name: aggregation_service
+    depends_on:
+      - mysql
+    networks:
+      - retail_net
+
+volumes:
+  mysql_data:
+
+networks:
+  retail_net:
+    driver: bridge
